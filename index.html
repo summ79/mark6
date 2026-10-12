@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>“友”運行小游戲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+        body {
+            background-color: #16213e;
+            color: #fff;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            position: relative;
+        }
+        h1 {
+            margin-bottom: 24px;
+            font-size: 32px;
+        }
+        .tip {
+            color: #cfd6e6;
+            margin-bottom: 28px;
+            font-size: 18px;
+        }
+        .ball-area {
+            margin: 36px 0;
+        }
+        .group-title {
+            margin: 20px 0 12px;
+            font-size: 22px;
+            color: #ffd166;
+            font-weight: bold;
+        }
+        .balls {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        .ball {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: #2a3a5f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: bold;
+            color: #d6e0f5;
+            border: 3px solid #4a6fa5;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            transition: transform 0.15s ease;
+        }
+        .ball.active {
+            background: #ff4d6d;
+            border-color: #ffb3c1;
+            color: #fff;
+            transform: scale(1.08);
+        }
+        .special-ball {
+            background: #14d0c7;
+            border-color: #a5f3ee;
+            color: #003d3b;
+        }
+        .roll-preview {
+            font-size: 64px;
+            height: 90px;
+            line-height: 90px;
+            color: #ffd166;
+            margin: 24px 0;
+            font-weight: bold;
+            text-shadow: 0 0 18px rgba(255, 209, 102, 0.45);
+        }
+        .btn-group {
+            margin-top: 36px;
+            display: flex;
+            justify-content: center;
+        }
+        button {
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #drawBtn {
+            background: #06d6a0;
+            color: #000;
+            padding: 24px 80px;
+            font-size: 28px;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 6px 16px rgba(6, 214, 160, 0.35);
+        }
+        #drawBtn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            color: #aaa;
+            box-shadow: none;
+        }
+        #resetBtn {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            background: #2a3a5f;
+            color: #cfd6e6;
+            padding: 8px 14px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid #4a6fa5;
+            z-index: 999;
+        }
+        #resetBtn:hover {
+            background: #3b4f7a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>“友”運行小游戲</h1>
+        <div class="tip">下一個幸運兒就是你！</div>
+
+        <div class="roll-preview" id="rollPreview">--</div>
+
+        <div class="ball-area">
+            <div class="group-title">攪出號碼</div>
+            <div class="balls" id="normalBalls">
+                <div class="ball"></div>
+                <div class="ball"></div>
+                <div class="ball"></div>
+                <div class="ball"></div>
+                <div class="ball"></div>
+                <div class="ball"></div>
+            </div>
+            <div class="group-title">特別號碼</div>
+            <div class="balls" id="specialBallWrap">
+                <div class="ball"></div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button id="drawBtn">發達啦!</button>
+        </div>
+
+        <button id="resetBtn">重置</button>
+    </div>
+
+<script>
+    const drawBtn = document.getElementById('drawBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const rollPreview = document.getElementById('rollPreview');
+    const normalBallsDom = document.querySelectorAll('#normalBalls .ball');
+    const specialBallDom = document.querySelector('#specialBallWrap .ball');
+
+    let selectedNumbers = [];
+    const MAX_COUNT = 7;
+    const MIN_NUM = 1;
+    const MAX_NUM = 49;
+    let isRolling = false;
+
+    function getRandomUnused(){
+        let num;
+        do {
+            num = Math.floor(Math.random() * MAX_NUM) + MIN_NUM;
+        } while(selectedNumbers.includes(num));
+        return num;
+    }
+
+    function rollAnimation(finalNum){
+        return new Promise(resolve => {
+            let count = 0;
+            const maxTimes = 25;
+            const timer = setInterval(()=>{
+                let temp = Math.floor(Math.random()*MAX_NUM)+MIN_NUM;
+                rollPreview.innerText = temp;
+                count++;
+                if(count >= maxTimes){
+                    clearInterval(timer);
+                    rollPreview.innerText = finalNum;
+                    resolve();
+                }
+            }, 60);
+        })
+    }
+
+    function renderBalls(){
+        normalBallsDom.forEach(item=>{
+            item.innerText = "";
+            item.classList.remove('active');
+        })
+        specialBallDom.innerText = "";
+        specialBallDom.classList.remove('special-ball');
+
+        selectedNumbers.forEach((val, idx)=>{
+            if(idx < 6){
+                normalBallsDom[idx].innerText = val;
+                normalBallsDom[idx].classList.add('active');
+            }else{
+                specialBallDom.innerText = val;
+                specialBallDom.classList.add('special-ball');
+            }
+        })
+    }
+
+    drawBtn.addEventListener('click', async ()=>{
+        if(isRolling) return;
+        if(selectedNumbers.length >= MAX_COUNT) return;
+        isRolling = true;
+        drawBtn.disabled = true;
+
+        const resultNum = getRandomUnused();
+        await rollAnimation(resultNum);
+        selectedNumbers.push(resultNum);
+        renderBalls();
+
+        isRolling = false;
+        if(selectedNumbers.length < MAX_COUNT){
+            drawBtn.disabled = false;
+        }
+    })
+
+    resetBtn.addEventListener('click',()=>{
+        selectedNumbers = [];
+        rollPreview.innerText = "--";
+        renderBalls();
+        drawBtn.disabled = false;
+        isRolling = false;
+    })
+
+    renderBalls();
+</script>
+</body>
+</html>
