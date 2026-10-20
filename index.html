@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>“友”運行小游戲</title>
+    <title>「友」運行小遊戲</title>
     <style>
         * {
             margin: 0;
@@ -20,7 +20,6 @@
         .container {
             max-width: 720px;
             margin: 0 auto;
-            position: relative;
         }
         h1 {
             margin-bottom: 24px;
@@ -108,6 +107,7 @@
             color: #aaa;
             box-shadow: none;
         }
+        /* 右上角重置按鈕 */
         #resetBtn {
             position: fixed;
             top: 14px;
@@ -123,11 +123,34 @@
         #resetBtn:hover {
             background: #3b4f7a;
         }
+        /* 左上角背景音樂開關按鈕 */
+        #musicToggleBtn {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            background: #06d6a0;
+            color: #000;
+            padding: 8px 14px;
+            font-size: 14px;
+            border-radius: 8px;
+            z-index: 999;
+        }
+        #musicToggleBtn.off {
+            background: #666;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
+
+    <!-- 左上角：背景音樂開關 -->
+    <button id="musicToggleBtn" class="off">背景音樂：關</button>
+    <!-- 右上角：重置按鈕 -->
+    <button id="resetBtn">重置</button>
+
+    <!-- 遊戲主介面 -->
     <div class="container">
-        <h1>“友”運行小游戲</h1>
+        <h1>「友」運行小遊戲</h1>
         <div class="tip">下一個幸運兒就是你！</div>
 
         <div class="roll-preview" id="rollPreview">--</div>
@@ -151,70 +174,98 @@
         <div class="btn-group">
             <button id="drawBtn">發達啦!</button>
         </div>
-
-        <button id="resetBtn">重置</button>
     </div>
 
+    <!-- 背景音樂：標籤單獨放在頁面底部，徹底避免影響前面介面渲染 -->
+    <audio id="bgAudio" src="m6_bg_music.MP3" loop preload="auto">
+
 <script>
+    // ===== 元素獲取 =====
     const drawBtn = document.getElementById('drawBtn');
     const resetBtn = document.getElementById('resetBtn');
     const rollPreview = document.getElementById('rollPreview');
     const normalBallsDom = document.querySelectorAll('#normalBalls .ball');
     const specialBallDom = document.querySelector('#specialBallWrap .ball');
+    const musicToggleBtn = document.getElementById('musicToggleBtn');
+    const bgAudio = document.getElementById('bgAudio');
 
+    // ===== 背景音樂模塊（完全獨立，不影響遊戲邏輯）=====
+    bgAudio.volume = 0.4;
+    let musicOn = false;
+
+    musicToggleBtn.addEventListener('click', () => {
+        if (!musicOn) {
+            bgAudio.play()
+                .then(() => {
+                    musicOn = true;
+                    musicToggleBtn.textContent = '背景音樂：開';
+                    musicToggleBtn.classList.remove('off');
+                })
+                .catch(() => {
+                    musicToggleBtn.textContent = '背景音樂檔案缺失';
+                });
+        } else {
+            bgAudio.pause();
+            musicOn = false;
+            musicToggleBtn.textContent = '背景音樂：關';
+            musicToggleBtn.classList.add('off');
+        }
+    });
+
+    // ===== 遊戲核心邏輯 =====
     let selectedNumbers = [];
     const MAX_COUNT = 7;
     const MIN_NUM = 1;
     const MAX_NUM = 49;
     let isRolling = false;
 
-    function getRandomUnused(){
+    function getRandomUnused() {
         let num;
         do {
             num = Math.floor(Math.random() * MAX_NUM) + MIN_NUM;
-        } while(selectedNumbers.includes(num));
+        } while (selectedNumbers.includes(num));
         return num;
     }
 
-    function rollAnimation(finalNum){
+    function rollAnimation(finalNum) {
         return new Promise(resolve => {
             let count = 0;
             const maxTimes = 25;
-            const timer = setInterval(()=>{
-                let temp = Math.floor(Math.random()*MAX_NUM)+MIN_NUM;
+            const timer = setInterval(() => {
+                let temp = Math.floor(Math.random() * MAX_NUM) + MIN_NUM;
                 rollPreview.innerText = temp;
                 count++;
-                if(count >= maxTimes){
+                if (count >= maxTimes) {
                     clearInterval(timer);
                     rollPreview.innerText = finalNum;
                     resolve();
                 }
             }, 60);
-        })
+        });
     }
 
-    function renderBalls(){
-        normalBallsDom.forEach(item=>{
-            item.innerText = "";
+    function renderBalls() {
+        normalBallsDom.forEach(item => {
+            item.innerText = '';
             item.classList.remove('active');
-        })
-        specialBallDom.innerText = "";
+        });
+        specialBallDom.innerText = '';
         specialBallDom.classList.remove('special-ball');
 
-        selectedNumbers.forEach((val, idx)=>{
-            if(idx < 6){
+        selectedNumbers.forEach((val, idx) => {
+            if (idx < 6) {
                 normalBallsDom[idx].innerText = val;
                 normalBallsDom[idx].classList.add('active');
-            }else{
+            } else {
                 specialBallDom.innerText = val;
                 specialBallDom.classList.add('special-ball');
             }
-        })
+        });
     }
 
-    drawBtn.addEventListener('click', async ()=>{
-        if(isRolling) return;
-        if(selectedNumbers.length >= MAX_COUNT) return;
+    drawBtn.addEventListener('click', async () => {
+        if (isRolling) return;
+        if (selectedNumbers.length >= MAX_COUNT) return;
         isRolling = true;
         drawBtn.disabled = true;
 
@@ -224,18 +275,18 @@
         renderBalls();
 
         isRolling = false;
-        if(selectedNumbers.length < MAX_COUNT){
+        if (selectedNumbers.length < MAX_COUNT) {
             drawBtn.disabled = false;
         }
-    })
+    });
 
-    resetBtn.addEventListener('click',()=>{
+    resetBtn.addEventListener('click', () => {
         selectedNumbers = [];
-        rollPreview.innerText = "--";
+        rollPreview.innerText = '--';
         renderBalls();
         drawBtn.disabled = false;
         isRolling = false;
-    })
+    });
 
     renderBalls();
 </script>
