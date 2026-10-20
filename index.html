@@ -123,7 +123,7 @@
         #resetBtn:hover {
             background: #3b4f7a;
         }
-        /* 左上角背景音樂開關按鈕 */
+        /* 左上角音樂開關按鈕 */
         #musicToggleBtn {
             position: fixed;
             top: 14px;
@@ -143,8 +143,8 @@
 </head>
 <body>
 
-    <!-- 左上角：背景音樂開關 -->
-    <button id="musicToggleBtn" class="off">背景音樂：關</button>
+    <!-- 左上角：音樂開關 -->
+    <button id="musicToggleBtn" class="off">音樂：關</button>
     <!-- 右上角：重置按鈕 -->
     <button id="resetBtn">重置</button>
 
@@ -176,8 +176,8 @@
         </div>
     </div>
 
-    <!-- 背景音樂：標籤單獨放在頁面底部，徹底避免影響前面介面渲染 -->
-    <audio id="bgAudio" src="m6_bg_music.mp3" loop preload="auto">
+    <!-- 背景音樂 -->
+    <audio id="bgAudio" src="m6_bg_music.mp3" loop preload="auto" type="audio/mpeg">
 
 <script>
     // ===== 元素獲取 =====
@@ -189,7 +189,7 @@
     const musicToggleBtn = document.getElementById('musicToggleBtn');
     const bgAudio = document.getElementById('bgAudio');
 
-    // ===== 背景音樂模塊（完全獨立，不影響遊戲邏輯）=====
+    // ===== 音樂模塊 =====
     bgAudio.volume = 0.4;
     let musicOn = false;
 
@@ -198,16 +198,16 @@
             bgAudio.play()
                 .then(() => {
                     musicOn = true;
-                    musicToggleBtn.textContent = '背景音樂：開';
+                    musicToggleBtn.textContent = '音樂：開';
                     musicToggleBtn.classList.remove('off');
                 })
                 .catch(() => {
-                    musicToggleBtn.textContent = '背景音樂檔案缺失';
+                    musicToggleBtn.textContent = '音樂檔案缺失';
                 });
         } else {
             bgAudio.pause();
             musicOn = false;
-            musicToggleBtn.textContent = '背景音樂：關';
+            musicToggleBtn.textContent = '音樂：關';
             musicToggleBtn.classList.add('off');
         }
     });
@@ -244,7 +244,19 @@
         });
     }
 
+    // ===== 關鍵優化：抽滿7個時前6個自動排序 =====
     function renderBalls() {
+        // 複製一份用於顯示，不變動原始抽取順序
+        let displayNumbers = [...selectedNumbers];
+
+        // 當 7 個號碼全部抽出後，前 6 個由小到大排序
+        if (displayNumbers.length === 7) {
+            const firstSixSorted = displayNumbers.slice(0, 6).sort((a, b) => a - b);
+            const specialNum = displayNumbers[6];
+            displayNumbers = [...firstSixSorted, specialNum];
+        }
+
+        // 清空畫面
         normalBallsDom.forEach(item => {
             item.innerText = '';
             item.classList.remove('active');
@@ -252,7 +264,8 @@
         specialBallDom.innerText = '';
         specialBallDom.classList.remove('special-ball');
 
-        selectedNumbers.forEach((val, idx) => {
+        // 渲染號碼
+        displayNumbers.forEach((val, idx) => {
             if (idx < 6) {
                 normalBallsDom[idx].innerText = val;
                 normalBallsDom[idx].classList.add('active');
