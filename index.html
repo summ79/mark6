@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>「友」運行小遊戲</title>
+    <title>「友」運行小游戲</title>
     <style>
         * {
             margin: 0;
@@ -107,23 +107,27 @@
             color: #aaa;
             box-shadow: none;
         }
-        /* 右上角重置按鈕 */
+        /* 右上角重置按鈕：圓形符號按鈕 */
         #resetBtn {
             position: fixed;
             top: 14px;
             right: 14px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
             background: #2a3a5f;
             color: #cfd6e6;
-            padding: 8px 14px;
-            font-size: 14px;
-            border-radius: 8px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border: 1px solid #4a6fa5;
             z-index: 999;
         }
         #resetBtn:hover {
             background: #3b4f7a;
         }
-        /* 左上角音樂開關：符號式，小巧不擋字 */
+        /* 左上角音樂開關：圓形符號按鈕 */
         #musicToggleBtn {
             position: fixed;
             top: 14px;
@@ -147,14 +151,14 @@
 </head>
 <body>
 
-    <!-- 左上角：音樂開關（符號） -->
+    <!-- 左上角：音樂開關 -->
     <button id="musicToggleBtn" class="off">🔇</button>
-    <!-- 右上角：重置按鈕 -->
-    <button id="resetBtn">重置</button>
+    <!-- 右上角：重置按鈕（改為 ↺ 符號） -->
+    <button id="resetBtn" title="重置">↺</button>
 
     <!-- 遊戲主介面 -->
     <div class="container">
-        <h1>「友」運行小遊戲</h1>
+        <h1>「友」運行小游戲</h1>
         <div class="tip">下一個幸運兒就是你！</div>
 
         <div class="roll-preview" id="rollPreview">--</div>
